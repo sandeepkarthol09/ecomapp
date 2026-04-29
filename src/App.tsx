@@ -1,11 +1,14 @@
 import { useState } from 'react'
+import { Routes, Route, useNavigate } from 'react-router'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
+import Login from './Login'
 import './App.css'
 
-function App() {
+function Home() {
   const [count, setCount] = useState(0)
+  const navigate = useNavigate()
 
   return (
     <>
@@ -16,8 +19,8 @@ function App() {
           <img src={viteLogo} className="vite" alt="Vite logo" />
         </div>
         <div>
-          <button>
-            Hello
+          <button onClick={() => navigate('/login')}>
+            Move to login screen
           </button>
           <h1>Get started</h1>
           <p>
@@ -119,6 +122,15 @@ function App() {
       <div className="ticks"></div>
       <section id="spacer"></section>
     </>
+  )
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+    </Routes>
   )
 }
 
