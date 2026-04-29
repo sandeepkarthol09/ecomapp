@@ -8,7 +8,6 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to include tokens in headers
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -17,19 +16,14 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Add response interceptor for global error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle global errors like 401 Unauthorized
     if (error.response?.status === 401) {
-       // Optional: logout user or refresh token
-       console.error('Unauthorized access - potential token expiration');
+      console.error('Unauthorized access - potential token expiration');
     }
     return Promise.reject(error);
   }

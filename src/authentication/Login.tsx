@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { authService } from "./api/auth";
+import { HTTP_STATUS } from "../utils/statusCodes";
 import "./Login.css";
+import { useNavigate } from "react-router";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -8,6 +10,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+   const navigate = useNavigate();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +21,7 @@ export default function Login() {
     try {
       const result = await authService.login(email, password);
 
-      if (result.status === 200) {
+      if (result.status === HTTP_STATUS.OK) {
         console.log("Login successful:", result);
         setSuccess(true);
         // Store tokens
@@ -28,10 +32,14 @@ export default function Login() {
           localStorage.setItem("refreshToken", result.data.refreshToken);
         }
       } else {
-        setError(result.message || "Login failed. Please check your credentials.");
+        setError(
+          result.message || "Login failed. Please check your credentials.",
+        );
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "An error occurred. Please try again later.";
+      const errorMessage =
+        err.response?.data?.message ||
+        "An error occurred. Please try again later.";
       setError(errorMessage);
       console.error("Login error:", err);
     } finally {
@@ -107,7 +115,11 @@ export default function Login() {
             />
           </div>
 
-          <button type="submit" className={`login-btn ${loading ? 'loading' : ''}`} disabled={loading}>
+          <button
+            type="submit"
+            className={`login-btn ${loading ? "loading" : ""}`}
+            disabled={loading}
+          >
             {loading ? "Signing in..." : "Sign In"}
             {!loading && <span className="btn-shine"></span>}
           </button>
@@ -115,7 +127,16 @@ export default function Login() {
 
         <div className="login-footer">
           <p>
-            Don't have an account? <a href="#">Create Account</a>
+            Don't have an account?{" "}
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/register");
+              }}
+            >
+              Create Account
+            </a>
           </p>
           <div className="social-login">
             <button className="social-btn" aria-label="Sign in with Google">

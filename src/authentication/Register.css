@@ -1,0 +1,65 @@
+.register-glass {
+  max-width: 600px; /* Slightly wider for rows */
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.input-row .input-group {
+  flex: 1;
+}
+
+.custom-select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: white;
+  transition: all 0.3s ease;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+.custom-select:focus {
+  border-color: #6366f1;
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.custom-select option {
+  background: #1e1b4b; /* Dark theme compatible options background */
+  color: white;
+  padding: 12px;
+}
+
+.link-span {
+  color: #6366f1;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.link-span:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .input-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+}

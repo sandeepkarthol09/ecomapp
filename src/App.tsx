@@ -3,7 +3,8 @@ import { Routes, Route, useNavigate } from 'react-router'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
-import Login from './Login'
+import Login from './authentication/Login'
+import Register from './authentication/Register'
 import './App.css'
 
 function Home() {
@@ -128,8 +129,9 @@ function Home() {
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      {/* <Route path="/" element={<Home />} /> */}
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
     </Routes>
   )
 }
