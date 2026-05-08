@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { productService } from '../api/productService';
-import type { Product } from '../types/product';
+import type { Product, CartItem } from '../types/product';
 import DashboardLayout from './DashboardLayout';
 import './Home.css';
 
@@ -71,6 +71,20 @@ export default function Home() {
     );
   }
 
+  const handleAddToCart = (product: Product) => {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existingItem = cart.find((item: CartItem) => item._id === product._id);
+    
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cart.push({ ...product, quantity: 1 });
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(cart));
+    alert(`${product.name} added to cart!`);
+  };
+
   return (
     <DashboardLayout title="Ecommerce Store">
       <div className="product-grid">
@@ -92,7 +106,11 @@ export default function Home() {
               <p className="product-description">{product.description}</p>
               <div className="product-footer">
                 <span className="product-price">${product.price.toLocaleString()}</span>
-                <button className="add-to-cart-btn" aria-label="Add to cart">
+                <button 
+                  className="add-to-cart-btn" 
+                  aria-label="Add to cart"
+                  onClick={() => handleAddToCart(product)}
+                >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="9" cy="21" r="1"></circle>
                     <circle cx="20" cy="21" r="1"></circle>

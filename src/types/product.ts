@@ -28,3 +28,6 @@ export interface ProductResponse {
     _meta: ProductMeta;
   };
 }
+export interface CartItem extends Product {
+  quantity: number;
+}
