@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import { authService } from "./api/auth";
 import { HTTP_STATUS } from "../utils/statusCodes";
 import { useNavigate } from "react-router";
@@ -38,8 +39,11 @@ export default function Register() {
       } else {
         setError(result.message || "Registration failed.");
       }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || "An error occurred during registration.";
+    } catch (err: unknown) {
+      let errorMessage = "An error occurred during registration.";
+      if (axios.isAxiosError(err)) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
       setError(errorMessage);
     } finally {
       setLoading(false);

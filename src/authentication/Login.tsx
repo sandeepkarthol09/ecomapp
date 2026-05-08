@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import { authService } from "./api/auth";
 import { HTTP_STATUS } from "../utils/statusCodes";
 import "./Login.css";
@@ -10,8 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-   const navigate = useNavigate();
-
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,15 +31,17 @@ export default function Login() {
         if (result.data?.refreshToken) {
           localStorage.setItem("refreshToken", result.data.refreshToken);
         }
+        navigate("/");
       } else {
         setError(
           result.message || "Login failed. Please check your credentials.",
         );
       }
-    } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message ||
-        "An error occurred. Please try again later.";
+    } catch (err: unknown) {
+      let errorMessage = "An error occurred. Please try again later.";
+      if (axios.isAxiosError(err)) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
       setError(errorMessage);
       console.error("Login error:", err);
     } finally {
