@@ -2,21 +2,26 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { productService } from '../api/productService';
 import type { Product } from '../types/product';
+import DashboardLayout from './DashboardLayout';
 import './Home.css';
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (page: number) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await productService.getProducts(1, 10);
+      const response = await productService.getProducts(page, 10);
       if (response.status === 200) {
         setProducts(response.data.products);
+        setTotalPages(response.data._meta.totalPages);
+        setCurrentPage(response.data._meta.page);
       } else {
         setError(response.message || 'Failed to fetch products');
       }
@@ -34,45 +39,40 @@ export default function Home() {
       navigate('/login');
       return;
     }
-    fetchProducts();
-  }, [navigate]);
+    fetchProducts(currentPage);
+  }, [navigate, currentPage]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    navigate('/login');
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
   if (loading) {
     return (
-      <div className="home-container">
+      <DashboardLayout title="Store">
         <div className="loading-container">
           <span className="loader"></span>
           <p style={{ marginTop: '20px', color: '#94a3b8' }}>Discovering amazing products...</p>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="home-container">
+      <DashboardLayout title="Store">
         <div className="error-container">
           <h2>Oops! Something went wrong</h2>
           <p>{error}</p>
-          <button className="retry-btn" onClick={fetchProducts}>Try Again</button>
+          <button className="retry-btn" onClick={() => fetchProducts(currentPage)}>Try Again</button>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="home-container">
-      <header className="home-header">
-        <h1>Antigravity Store</h1>
-        <button className="logout-btn" onClick={handleLogout}>Logout</button>
-      </header>
-
+    <DashboardLayout title="Ecommerce Store">
       <div className="product-grid">
         {products.map((product) => (
           <div key={product._id} className="product-card">
@@ -104,6 +104,38 @@ export default function Home() {
           </div>
         ))}
       </div>
-    </div>
+
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            className="pagination-btn" 
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          
+          <div className="page-numbers">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                className={`page-number ${currentPage === page ? 'active' : ''}`}
+                onClick={() => handlePageChange(page)}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button 
+            className="pagination-btn" 
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </DashboardLayout>
   );
 }
