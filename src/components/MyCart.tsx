@@ -2,18 +2,25 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import DashboardLayout from './DashboardLayout';
 import type { CartItem } from '../types/product';
+import { orderService } from '../api/orderService';
+import type { CreateOrderRequest } from '../types/order';
 import './Home.css';
 
 export default function MyCart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  console.log('cartItems>>>', cartItems)
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    const savedCart = localStorage.getItem('cart');
+    if (!savedCart) return [];
+    try {
+      return JSON.parse(savedCart) as CartItem[];
+    } catch {
+      return [];
+    }
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
+    // Intentionally left blank: cart items are initialized from localStorage.
+    // If you later add a cart API, this is where you'd fetch+set.
   }, []);
 
   const updateQuantity = (id: string, delta: number) => {
@@ -38,27 +45,37 @@ export default function MyCart() {
   const shipping = 0; // Free shipping for now
   const total = subtotal + shipping;
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cartItems.length === 0) return;
     
-    // For now, let's just clear the cart and show a success message
-    // In a real app, this would navigate to a checkout page or call an API
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-    const newOrder = {
-      id: `ORD-${Date.now()}`,
-      date: new Date().toISOString(),
-      items: cartItems,
-      total: total,
-      status: 'Processing'
-    };
-    
-    orders.unshift(newOrder);
-    localStorage.setItem('orders', JSON.stringify(orders));
-    localStorage.removeItem('cart');
-    setCartItems([]);
-    
-    alert('Order placed successfully!');
-    navigate('/my-orders');
+    try {
+      const payload: CreateOrderRequest = {
+        products: cartItems.map((item) => ({
+          productId: item._id,
+          quantity: item.quantity,
+        })),
+      };
+
+      const result = await orderService.createOrder(payload);
+
+      if (result.status !== 200) {
+        alert(result.message || 'Failed to create order');
+        return;
+      }
+
+      localStorage.removeItem('cart');
+      setCartItems([]);
+
+      alert(result.message || 'Order placed successfully!');
+      navigate('/my-orders');
+    } catch (err: unknown) {
+      const maybeErr = err as { response?: { data?: { message?: string } }; message?: string };
+      const message =
+        maybeErr?.response?.data?.message ||
+        maybeErr?.message ||
+        'Failed to create order. Please try again.';
+      alert(message);
+    }
   };
 
   return (
@@ -82,7 +99,13 @@ export default function MyCart() {
                 <div key={item._id} className="cart-item">
                   <div className="cart-item-image-container">
                     <img 
-                      src={item.image || (item as any).imageURL || (item as any).img || (item as any).thumbnail || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} 
+                      src={
+                        item.image ||
+                        (item as CartItem & { imageURL?: string }).imageURL ||
+                        (item as CartItem & { img?: string }).img ||
+                        (item as CartItem & { thumbnail?: string }).thumbnail ||
+                        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+                      } 
                       alt={item.name} 
                       className="cart-item-image" 
                       onError={(e) => {
