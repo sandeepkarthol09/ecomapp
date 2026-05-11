@@ -6,10 +6,9 @@ import { orderService } from '../api/orderService';
 
 export default function MyOrders() {
   const [orders, setOrders] = useState<OrderResponseData[]>([]);
-
-  console.log('orders>>>', orders)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -34,6 +33,23 @@ export default function MyOrders() {
       alive = false;
     };
   }, []);
+
+  const handleCancelOrder = async (orderId: string) => {
+    const shouldCancel = window.confirm('Are you sure you want to cancel this order?');
+    if (!shouldCancel) return;
+
+    try {
+      setCancellingOrderId(orderId);
+      setError(null);
+      await orderService.deleteOrder(orderId);
+      setOrders((prev) => prev.filter((order) => order._id !== orderId));
+    } catch (err: unknown) {
+      const maybeErr = err as { response?: { data?: { message?: string } }; message?: string };
+      setError(maybeErr?.response?.data?.message || maybeErr?.message || 'Failed to cancel order');
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
 
   return (
     <DashboardLayout title="My Orders">
@@ -83,7 +99,13 @@ export default function MyOrders() {
                     </span>
                   </td>
                   <td>
-                    <button className="view-btn">View Details</button>
+                    <button
+                      className="view-btn cancel-btn"
+                      onClick={() => handleCancelOrder(order._id)}
+                      disabled={cancellingOrderId === order._id || String(order.status || '').toLowerCase() !== 'pending'}
+                    >
+                      {cancellingOrderId === order._id ? 'Cancelling...' : 'Cancel Order'}
+                    </button>
                   </td>
                 </tr>
               ))}

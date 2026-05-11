@@ -23,5 +23,10 @@ export const orderService = {
 
     throw lastError;
   },
+
+  deleteOrder: async (orderId: string): Promise<CreateOrderResponse> => {
+    const response = await api.delete<CreateOrderResponse>(`/orders/deleteorder/${orderId}`);
+    return response.data;
+  },
 };
 
